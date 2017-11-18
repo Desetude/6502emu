@@ -1,19 +1,15 @@
 package com.desetude.emu6502.instructions.execution;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 import com.desetude.emu6502.instructions.Instruction;
+import com.desetude.emu6502.utils.MemoryUtils;
 
-/**
- * ReTurn from Subroutine - Sets the program counter
- * to the top two bytes from the stack + 1.
- */
 public class InstructionRts implements Instruction {
 
     @Override
-    public void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder) {
-        regHolder.regPc = mmu.stackPop2() + 1;
+    public void execute(InstructionMode mode, Bus bus, CpuStore store) {
+        store.regPc = MemoryUtils.stackPop2(bus, store) + 1;
     }
-
 }

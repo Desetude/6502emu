@@ -1,9 +1,9 @@
 package com.desetude.emu6502;
 
-import static com.desetude.emu6502.instructions.Instructions.*;
 import static org.junit.Assert.assertEquals;
 
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.devices.Memory;
+import com.desetude.emu6502.utils.MemoryUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,87 +11,82 @@ import org.junit.Test;
 public class ModeTests {
 
     private Emu6502 emulator;
-    private MMU mmu;
-    private RegisterHolder regHolder;
+    private Bus bus;
+    private CpuStore store;
 
     @Before
     public void setup() {
         this.emulator = new Emu6502();
-        this.mmu = this.emulator.getMmu();
-        this.regHolder = this.emulator.getRegHolder();
+        this.bus = this.emulator.getBus();
+        this.store = this.emulator.getStore();
+
+        this.bus.addDevice(new Memory(0x0000, 0x0FFF, false));
     }
 
     @After
     public void verify() {
-        CPU cpu = this.emulator.getCpu();
+        Cpu cpu = this.emulator.getCpu();
 
         cpu.tick();
-        assertEquals(1, this.regHolder.regA);
+        assertEquals(1, this.store.regA);
 
         cpu.tick();
-        assertEquals(3, this.regHolder.regA);
+        assertEquals(3, this.store.regA);
 
         cpu.tick();
-        assertEquals(6, this.regHolder.regA);
+        assertEquals(6, this.store.regA);
 
         cpu.tick();
-        assertEquals(10, this.regHolder.regA);
+        assertEquals(10, this.store.regA);
 
         cpu.tick();
-        assertEquals(15, this.regHolder.regA);
+        assertEquals(15, this.store.regA);
 
         cpu.tick();
-        assertEquals(21, this.regHolder.regA);
+        assertEquals(21, this.store.regA);
 
         cpu.tick();
-        assertEquals(28, this.regHolder.regA);
+        assertEquals(28, this.store.regA);
 
         cpu.tick();
-        assertEquals(36, this.regHolder.regA);
+        assertEquals(36, this.store.regA);
     }
 
     @Test
-    public void adc() {
-        this.mmu.memoryWrite1(0x0200, 4);
-        this.mmu.memoryWrite1(0x0202, 5);
-        this.mmu.memoryWrite1(0x0204, 6);
+    public void test() {
+        /*
+        ADC #$1
+        ADC $0xF0
+        ADC $0xF0,X
+        ADC $0x0200
+        ADC $0x0200,X
+        ADC $0x0200,Y
+        ADC ($0x90,X)
+        ADC ($0x90),Y
+         */
 
-        this.mmu.memoryWrite1(0x0300, 7);
-        this.mmu.memoryWrite1(0x0301, 8);
-        this.mmu.memoryWrite2(0x0092, 0x0300);
-        this.mmu.memoryWrite2(0x0094, 0x0301);
+        this.store.regX = 2;
+        this.store.regY = 4;
 
-        this.mmu.memoryWrite1(0x00F0, 2);
-        this.mmu.memoryWrite1(0x00F2, 3);
+        this.bus.write1(0x00F0, 2);
+        this.bus.write1(0x00F2, 3);
+        this.bus.write1(0x0200, 4);
+        this.bus.write1(0x0202, 5);
+        this.bus.write1(0x0204, 6);
+        this.bus.write1(0x0300, 7);
+        this.bus.write1(0x0304, 8);
+        this.bus.write2(0x0092, 0x0300);
+        this.bus.write2(0x0090, 0x0300);
 
-        //Attempt every mode possible for ADC
-
-        this.mmu.programWrite1(0x00, ADC_L);
-        this.mmu.programWrite1(0x01, 1);
-
-        this.mmu.programWrite1(0x02, ADC_zp);
-        this.mmu.programWrite1(0x03, 0xF0);
-
-        this.regHolder.regX = 2;
-        this.regHolder.regY = 4;
-
-        this.mmu.programWrite1(0x04, ADC_zpX);
-        this.mmu.programWrite1(0x05, 0xF0);
-
-        this.mmu.programWrite1(0x06, ADC_a);
-        this.mmu.programWrite2(0x07, 0x0200);
-
-        this.mmu.programWrite1(0x09, ADC_aX);
-        this.mmu.programWrite2(0x0A, 0x0200);
-
-        this.mmu.programWrite1(0x0C, ADC_aY);
-        this.mmu.programWrite2(0x0D, 0x0200);
-
-        this.mmu.programWrite1(0x0F, ADC_zpIdX);
-        this.mmu.programWrite1(0x10, 0x90);
-
-        this.mmu.programWrite1(0x11, ADC_zpIdY);
-        this.mmu.programWrite1(0x12, 0x90);
+        MemoryUtils.programWrite(this.bus, this.store,
+                0x69, 1,
+                0x65, 0xF0,
+                0x75, 0xF0,
+                0x6D, 0x00, 0x02,
+                0x7D, 0x00, 0x02,
+                0x79, 0x00, 0x02,
+                0x61, 0x90,
+                0x71, 0x90);
     }
 
 }

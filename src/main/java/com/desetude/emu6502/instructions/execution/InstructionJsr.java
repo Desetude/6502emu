@@ -1,9 +1,10 @@
 package com.desetude.emu6502.instructions.execution;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 import com.desetude.emu6502.instructions.Instruction;
+import com.desetude.emu6502.utils.MemoryUtils;
 
 /**
  * Jump, Saving Return address - Jump to execution and put
@@ -12,10 +13,9 @@ import com.desetude.emu6502.instructions.Instruction;
 public class InstructionJsr implements Instruction {
 
     @Override
-    public void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder) {
-        int subroutine = mmu.programPop2();
-        mmu.stackPush2(regHolder.regPc - 1);
-        regHolder.regPc = subroutine;
+    public void execute(InstructionMode mode, Bus bus, CpuStore store) {
+        int subroutine = MemoryUtils.programPop2(bus, store);
+        MemoryUtils.stackPush2(store.regPc - 1, bus, store);
+        store.regPc = subroutine;
     }
-
 }

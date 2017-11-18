@@ -1,13 +1,9 @@
 package com.desetude.emu6502;
 
-import static com.desetude.emu6502.instructions.Instructions.ADC_L;
-import static com.desetude.emu6502.instructions.Instructions.HLT_i;
-import static com.desetude.emu6502.instructions.Instructions.JMP_id;
-import static com.desetude.emu6502.instructions.Instructions.JSR_a;
-import static com.desetude.emu6502.instructions.Instructions.RTS_i;
 import static org.junit.Assert.assertEquals;
 
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.devices.Memory;
+import com.desetude.emu6502.utils.MemoryUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,42 +11,51 @@ import org.junit.Test;
 public class JmpTests {
 
     private Emu6502 emulator;
-    private RegisterHolder regHolder;
-    private MMU mmu;
+    private Bus bus;
+    private CpuStore store;
 
     @Before
     public void setup() {
         this.emulator = new Emu6502();
-        this.regHolder = this.emulator.getRegHolder();
-        this.mmu = this.emulator.getMmu();
+        this.bus = this.emulator.getBus();
+        this.store = this.emulator.getStore();
+
+        this.bus.addDevice(new Memory(0x0000, 0x0FFF, false));
     }
 
     @After
     public void verify() {
-        CPU cpu = this.emulator.getCpu();
-        while (cpu.isRunning()) {
-            cpu.tick();
-        }
+        Cpu cpu = this.emulator.getCpu();
+        cpu.tick();
+        cpu.tick();
+        cpu.tick();
+        cpu.tick();
+        cpu.tick();
+        cpu.tick();
 
-        assertEquals(15, this.regHolder.regA);
+        assertEquals(15, store.regA);
     }
 
     @Test
-    public void subroutineTest() {
-        this.mmu.memoryWrite2(0x0000, this.regHolder.regPc + 3);
+    public void subroutineTests() {
+        /*
+        JSR teleport
+        ADC #$8
+        JMP betterTeleport
+        teleport: ADC #$4
+        RTS
+        betterTeleport: ADC #$3
+         */
 
-        this.mmu.programWrite1(0, JSR_a);
-        this.mmu.programWrite2(1, this.regHolder.regPc + 6);
-
-        this.mmu.programWrite1(3, ADC_L);
-        this.mmu.programWrite1(4, 8);
-
-        this.mmu.programWrite1(5, HLT_i);
-
-        this.mmu.programWrite1(6, ADC_L);
-        this.mmu.programWrite1(7, 7);
-
-        this.mmu.programWrite1(8, RTS_i);
+        int teleport = this.store.regPc + 8;
+        int betterTeleport = this.store.regPc + 11;
+        MemoryUtils.programWrite(this.bus, this.store,
+                0x20, teleport & 0xFF, teleport >> 8, //read correctly
+                0x69, 8,
+                0x4C, betterTeleport & 0xFF, betterTeleport >> 8, //Here it is reading 0x0469
+                0x69, 4,
+                0x60,
+                0x69, 3);
     }
 
 }

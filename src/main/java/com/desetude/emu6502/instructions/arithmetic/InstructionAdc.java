@@ -1,9 +1,8 @@
 package com.desetude.emu6502.instructions.arithmetic;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.addressing.AddressingMode;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 import com.desetude.emu6502.instructions.Instruction;
 
 /**
@@ -11,17 +10,8 @@ import com.desetude.emu6502.instructions.Instruction;
  */
 public class InstructionAdc implements Instruction {
 
-    private final AddressingMode mode;
-
-    public InstructionAdc(AddressingMode mode) {
-        this.mode = mode;
+    @Override
+    public void execute(InstructionMode mode, Bus bus, CpuStore store) {
+        store.regA = (store.regA + mode.read1(bus, store)) & 0xFF;
     }
-
-    public void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder) {
-        //TODO: Implement flagD, flagZ, flagC
-        int arg = this.mode.read1(mmu, regHolder);
-
-        regHolder.regA = (regHolder.regA + arg) & 0xFF;
-    }
-
 }

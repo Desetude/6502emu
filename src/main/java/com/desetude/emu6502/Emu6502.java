@@ -1,38 +1,29 @@
 package com.desetude.emu6502;
 
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
-
 /**
  * 6502 Architecture emulator
  */
 public class Emu6502 {
 
-    private final RegisterHolder regHolder;
-    private final FlagHolder flagHolder;
-    private final MMU mmu;
-    private final CPU cpu;
+    private final CpuStore store;
+    private final Bus bus;
+    private final Cpu cpu;
 
     public Emu6502() {
-        this.regHolder = new RegisterHolder();
-        this.flagHolder = new FlagHolder();
-        this.mmu = new MMU(this.regHolder);
-        this.cpu = new CPU(this.mmu, this.regHolder, this.flagHolder);
+        this.store = new CpuStore();
+        this.bus = new Bus();
+        this.cpu = new Cpu(this.bus, this.store);
     }
 
-    public RegisterHolder getRegHolder() {
-        return regHolder;
+    public CpuStore getStore() {
+        return store;
     }
 
-    public FlagHolder getFlagHolder() {
-        return flagHolder;
+    public Bus getBus() {
+        return bus;
     }
 
-    public MMU getMmu() {
-        return mmu;
-    }
-
-    public CPU getCpu() {
+    public Cpu getCpu() {
         return cpu;
     }
 

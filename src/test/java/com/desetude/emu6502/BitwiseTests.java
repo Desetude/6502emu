@@ -1,12 +1,7 @@
 package com.desetude.emu6502;
 
-import static com.desetude.emu6502.instructions.Instructions.ADC_L;
-import static com.desetude.emu6502.instructions.Instructions.AND_L;
-import static com.desetude.emu6502.instructions.Instructions.ASL_A;
-import static com.desetude.emu6502.instructions.Instructions.HLT_i;
-import static org.junit.Assert.assertEquals;
-
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.devices.Memory;
+import com.desetude.emu6502.utils.MemoryUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,37 +9,39 @@ import org.junit.Test;
 public class BitwiseTests {
 
     private Emu6502 emulator;
-    private MMU mmu;
-    private RegisterHolder regHolder;
+    private Bus bus;
+    private CpuStore store;
 
     @Before
     public void setup() {
         this.emulator = new Emu6502();
-        this.mmu = this.emulator.getMmu();
-        this.regHolder = this.emulator.getRegHolder();
+        this.bus = this.emulator.getBus();
+        this.store = this.emulator.getStore();
+
+        this.bus.addDevice(new Memory(0x0000, 0x0FFF, false));
     }
 
     @After
     public void verify() {
-        CPU cpu = this.emulator.getCpu();
+        Cpu cpu = this.emulator.getCpu();
+        cpu.tick();
+
+        /*cpu.tick();
+        assertEquals(0b11010011, this.store.regA);
 
         cpu.tick();
-        assertEquals(0b11010011, this.regHolder.regA);
-
-        cpu.tick();
-        assertEquals(0b10100110, this.regHolder.regA);
+        assertEquals(0b10100110, this.store.regA);*/
     }
 
     @Test
     public void test() {
-        this.regHolder.regA = 0b11110111;
+        /*
+        AND #0b11011011
+        ASL
+         */
 
-        this.mmu.programWrite1(0x0000, AND_L);
-        this.mmu.programWrite1(0x0001, 0b11011011);
-
-        this.mmu.programWrite1(0x0002, ASL_A);
-
-        this.mmu.programWrite1(0x0003, HLT_i);
+        this.store.regA = 0b11110111;
+        MemoryUtils.programWrite(this.bus, this.store, 0x29, 0b11011011, 0x0A);
     }
 
 }

@@ -1,9 +1,10 @@
 package com.desetude.emu6502.instructions.execution;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 import com.desetude.emu6502.instructions.Instruction;
+import com.desetude.emu6502.utils.MemoryUtils;
 
 /**
  * JuMP to the specified address.
@@ -19,16 +20,22 @@ public class InstructionJmp implements Instruction {
         this.indirect = indirect;
     }
 
+    //Ignore mode as this is JMP is a special case and doesnt follow the normal opcode structure
     @Override
-    public void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder) {
+    public void execute(InstructionMode mode, Bus bus, CpuStore store) {
         int address;
         if (this.indirect) {
-            address = mmu.memoryRead2(mmu.programPop2());
+            address = bus.read2(MemoryUtils.programPop2(bus, store));
         } else {
-            address = mmu.programPop2();
+            address = MemoryUtils.programPop2(bus, store); //popped b,4 and got 469
         }
 
-        regHolder.regPc = address;
+        store.regPc = address;
+    }
+
+    @Override
+    public boolean obtainMode() {
+        return false;
     }
 
 }

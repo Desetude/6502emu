@@ -1,19 +1,18 @@
 package com.desetude.emu6502.instructions;
 
-import com.desetude.emu6502.Emu6502;
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 
 public interface Instruction {
 
     /**
-     * Executes the instruction.
-     *
-     * @param mmu to use in order to interact with memory
-     * @param regHolder to use in order to interact with the registers
-     * @param flagHolder to use in order to interact with the flags
+     * @return Whether this instruction requires the {@link InstructionMode} to be obtained.
      */
-    void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder);
+    default boolean obtainMode() {
+        return true;
+    }
+
+    void execute(InstructionMode mode, Bus bus, CpuStore store);
 
 }

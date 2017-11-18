@@ -1,26 +1,21 @@
 package com.desetude.emu6502.addressing;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.RegisterHolder;
-
-import java.util.function.Function;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.utils.MemoryUtils;
 
 /**
  * Immediate mode - read the data straight from the program.
  */
-public class ImmediateMode implements AddressingMode {
+public class ImmediateMode implements InstructionMode {
 
-    public int read1(MMU mmu, RegisterHolder regHolder) {
-        return mmu.programPop1();
+    public int read1(Bus bus, CpuStore store) {
+        return MemoryUtils.programPop1(bus, store);
     }
 
     @Override
-    public void write1(MMU mmu, int value) {
+    public void write1(Bus bus, CpuStore store, int value) {
         throw new UnsupportedOperationException("You can not write with immediate mode");
-    }
-
-    @Override public void modify1(MMU mmu, RegisterHolder regHolder, Function<Integer, Integer> function) {
-        throw new UnsupportedOperationException("You cannot modify in immediate mode");
     }
 
 }

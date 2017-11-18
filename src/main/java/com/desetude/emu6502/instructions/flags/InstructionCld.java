@@ -1,8 +1,8 @@
 package com.desetude.emu6502.instructions.flags;
 
-import com.desetude.emu6502.MMU;
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.Bus;
+import com.desetude.emu6502.CpuStore;
+import com.desetude.emu6502.addressing.InstructionMode;
 import com.desetude.emu6502.instructions.Instruction;
 
 /**
@@ -11,8 +11,7 @@ import com.desetude.emu6502.instructions.Instruction;
 public class InstructionCld implements Instruction {
 
     @Override
-    public void execute(MMU mmu, RegisterHolder regHolder, FlagHolder flagHolder) {
-        flagHolder.flagD = false;
+    public void execute(InstructionMode mode, Bus bus, CpuStore store) {
+        store.flagD = false;
     }
-
 }

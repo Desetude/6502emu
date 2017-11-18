@@ -1,12 +1,10 @@
 package com.desetude.emu6502;
 
-import static com.desetude.emu6502.instructions.Instructions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
-import com.desetude.emu6502.data.FlagHolder;
-import com.desetude.emu6502.data.RegisterHolder;
+import com.desetude.emu6502.devices.Memory;
+import com.desetude.emu6502.utils.MemoryUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,53 +12,61 @@ import org.junit.Test;
 public class StoreLoadTests {
 
     private Emu6502 emulator;
-    private RegisterHolder regHolder;
-    private FlagHolder flagHolder;
-    private MMU mmu;
+    private Bus bus;
+    private CpuStore store;
 
     @Before
     public void setup() {
         this.emulator = new Emu6502();
-        this.regHolder = this.emulator.getRegHolder();
-        this.flagHolder = this.emulator.getFlagHolder();
-        this.mmu = this.emulator.getMmu();
+        this.bus = this.emulator.getBus();
+        this.store = this.emulator.getStore();
+
+        this.bus.addDevice(new Memory(0x0000, 0x0FFF, false));
     }
 
     @After
     public void verify() {
-        CPU cpu = this.emulator.getCpu();
+        Cpu cpu = this.emulator.getCpu();
 
-        this.flagHolder.flagD = true;
-        while (cpu.isRunning()) {
-            cpu.tick();
-        }
+        cpu.tick();
+        assertEquals(15, this.store.regA);
 
-        assertEquals(15, this.regHolder.regA);
-        assertEquals(15, this.mmu.memoryRead1(0x0000));
-        assertEquals(15, this.regHolder.regS);
-        assertEquals(15, this.regHolder.regX);
-        assertEquals(15, this.regHolder.regY);
-        assertFalse(this.flagHolder.flagD);
+        cpu.tick();
+        assertEquals(15, this.bus.read1(0x0000));
+
+        cpu.tick();
+        assertEquals(15, this.store.regX);
+
+        cpu.tick();
+        assertEquals(15, this.store.regY);
+
+        cpu.tick();
+        assertEquals(15, this.store.regS);
+
+        cpu.tick();
+        assertFalse(this.store.flagD);
     }
 
     @Test
-    public void loadTest() {
-        this.mmu.programWrite1(0, LDA_L);
-        this.mmu.programWrite1(1, 15);
+    public void test() {
+        /*
+        LDA #$15
+        STA $0
+        LDX #$15
+        LDY #$15
+        TXS
+        CLD
+         */
 
-        this.mmu.programWrite1(2, STA_a);
-        this.mmu.programWrite2(3, 0x0000);
+        this.store.flagD = true;
 
-        this.mmu.programWrite1(5, LDX_L);
-
-        this.mmu.programWrite1(6, 15);
-        this.mmu.programWrite1(7, TXS_i);
-        this.mmu.programWrite1(8, CLD_i);
-
-        this.mmu.programWrite1(9, LDY_L);
-        this.mmu.programWrite1(10, 15);
-
-        this.mmu.programWrite1(11, HLT_i);
+        MemoryUtils.programWrite(this.bus, this.store,
+                0xA9, 15,
+                0x8D, 0, 0,
+                0xA2, 15,
+                0xA0, 15,
+                0x9A,
+                0xD8);
     }
 
 }
